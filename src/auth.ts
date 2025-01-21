@@ -1,78 +1,76 @@
 import { AuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { createAppClient, viemConnector } from "@farcaster/auth-client";
 
 declare module "next-auth" {
   interface Session {
     user: {
       fid: number;
+      jwt: string;
+      email: string;
+      walletAddress: string;
     };
+  }
+
+  interface User {
+    id: string;
+    jwt: string;
+    email: string;
+    walletAddress: string;
   }
 }
 
 export const authOptions: AuthOptions = {
-  // Configure one or more authentication providers
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Sign in with Farcaster",
       credentials: {
-        message: {
-          label: "Message",
-          type: "text",
-          placeholder: "0x0",
-        },
-        signature: {
-          label: "Signature",
-          type: "text",
-          placeholder: "0x0",
-        },
-        // In a production app with a server, these should be fetched from
-        // your Farcaster data indexer rather than have them accepted as part
-        // of credentials.
-        name: {
-          label: "Name",
-          type: "text",
-          placeholder: "0x0",
-        },
-        pfp: {
-          label: "Pfp",
-          type: "text",
-          placeholder: "0x0",
-        },
+        message: { label: "Message", type: "text", placeholder: "0x0" },
+        signature: { label: "Signature", type: "text", placeholder: "0x0" },
+        name: { label: "Name", type: "text", placeholder: "0x0" },
+        pfp: { label: "Pfp", type: "text", placeholder: "0x0" },
       },
-      async authorize(credentials, req) {
-        const csrfToken = req?.body?.csrfToken;
-        const appClient = createAppClient({
-          ethereum: viemConnector(),
-        });
-
-        const verifyResponse = await appClient.verifySignInMessage({
-          message: credentials?.message as string,
-          signature: credentials?.signature as `0x${string}`,
-          domain: new URL(process.env.NEXTAUTH_URL ?? "").hostname,
-          nonce: csrfToken,
-        });
-        const { success, fid } = verifyResponse;
-
-        if (!success) {
+      async authorize(credentials) {
+        if (!credentials) {
           return null;
         }
 
+        // For development: Always authenticate with mock data
         return {
-          id: fid.toString(),
+          id: "123", // Mock fid
+          jwt: credentials.signature || "mock_signature",
+          email: credentials.name || "mock@example.com",
+          walletAddress: credentials.message || "0x123",
         };
       },
     }),
   ],
   callbacks: {
-    session: async ({ session, token }) => {
-      if (session?.user) {
-        session.user.fid = parseInt(token.sub ?? "");
+    async session({ session, token }) {
+      if (token) {
+        session.user = {
+          fid: parseInt(token.sub ?? "123", 10),
+          jwt: token.jwt as string,
+          email: token.email as string,
+          walletAddress: token.walletAddress as string,
+        };
       }
       return session;
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.jwt = user.jwt;
+        token.email = user.email;
+        token.walletAddress = user.walletAddress;
+      }
+      return token;
+    },
   },
+  pages: {
+    signIn: "/",
+    error: "/",
+  },
+  debug: true,
 };
 
 export const getSession = () => getServerSession(authOptions);

@@ -2,14 +2,16 @@
 import { useState, useCallback, useEffect } from "react";
 import { signIn, signOut, useSession, getCsrfToken } from "next-auth/react";
 import { Button } from "./ui/Button";
-import sdk, { SignIn as SignInCore, type Context } from "@farcaster/frame-sdk"; // Replace with your actual SDK import
+import sdk, { SignIn as SignInCore, type Context } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [signingIn, setSigningIn] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signInResult, setSignInResult] = useState<SignInCore.SignInResult>();
   const [signInFailure, setSignInFailure] = useState<string>();
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
 
@@ -40,6 +42,12 @@ export default function Login() {
       };
     }
   }, [isSDKLoaded]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/campaign");
+    }
+  }, [status, router]);
 
   const getNonce = useCallback(async () => {
     const nonce = await getCsrfToken();
