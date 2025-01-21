@@ -45,7 +45,9 @@ export default function Login() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/campaign");
+      setTimeout(() => {
+        router.push("/campaign");
+      }, 2000);
     }
   }, [status, router]);
 
@@ -93,6 +95,10 @@ export default function Login() {
 
   return (
     <>
+      <div className="mb-4 text-sm font-medium">
+        Status: {status === "loading" ? "Loading..." : status}
+      </div>
+
       {status !== "authenticated" && (
         <Button onClick={handleSignIn} disabled={signingIn}>
           Sign In with Farcaster
