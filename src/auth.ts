@@ -12,7 +12,7 @@ declare module "next-auth" {
 
 export const authOptions: AuthOptions = {
   // Configure one or more authentication providers
-  // secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Sign in with Farcaster",
