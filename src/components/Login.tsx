@@ -85,10 +85,11 @@ export default function Login() {
       setSigningOut(true);
       await signOut({ redirect: false });
       setSignInResult(undefined);
+      router.push("/");
     } finally {
       setSigningOut(false);
     }
-  }, []);
+  }, [router]);
 
   return (
     <>
