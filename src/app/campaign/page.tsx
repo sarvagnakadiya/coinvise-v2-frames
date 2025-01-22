@@ -18,13 +18,8 @@ interface MetaTxTypeData {
   functionSignature: string;
 }
 
-interface LogData {
-  message: string;
-  data?: unknown;
-}
-
 // Add this utility function at the top level
-const serverLog = async ({ message, data }: LogData) => {
+const serverLog = async (message: string, data?: any) => {
   try {
     await fetch("/api/log", {
       method: "POST",
@@ -89,20 +84,17 @@ export default function Campaign() {
       );
 
       const relayerSigner = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
-      await serverLog({
-        message: "Relayer address",
-        data: { address: relayerSigner.address },
-      });
+      await serverLog("Relayer address", { address: relayerSigner.address });
 
-      await serverLog({ message: "Provider & signer done----" });
+      await serverLog("Provider & signer done----");
 
       // Campaign parameters
       const args = {
-        _tokenAddress: "0x...", // Your token address
-        _maxClaims: 100,
-        _amountPerClaim: ethers.parseEther("1"),
-        _isGasless: true,
-        _maxSponsoredClaims: 50,
+        _tokenAddress: "0x2246A41B6efB730A3845012EF8eBE6bc1D367A79",
+        _maxClaims: BigInt(100),
+        _amountPerClaim: BigInt(10000000),
+        _isGasless: BigInt(1),
+        _maxSponsoredClaims: BigInt(50),
       };
 
       // Get contract instance (you'll need to add your contract ABI and address)
@@ -112,19 +104,15 @@ export default function Campaign() {
         relayerSigner
       );
 
-      await serverLog({
-        message: "CampaignsNativeGaslessClaim contract instance done----",
-      });
+      await serverLog("CampaignsNativeGaslessClaim contract instance done----");
 
       const nonce = await campaignsNativeGaslessClaim.getNonce(address);
-      await serverLog({ message: "Nonce", data: nonce });
-
+      await serverLog("Nonce", nonce);
       const network = await provider.getNetwork();
-      await serverLog({ message: "Network", data: network });
+      await serverLog("Network", network);
       const chainId = Number(network.chainId);
-      await serverLog({ message: "ChainId", data: chainId });
 
-      await serverLog({ message: "Nonce & chainId done----" });
+      await serverLog("Nonce & chainId done----");
 
       const functionSignature =
         campaignsNativeGaslessClaim.interface.encodeFunctionData(
@@ -138,8 +126,10 @@ export default function Campaign() {
           ]
         );
 
+      await serverLog("FunctionSignature", functionSignature);
+
       const { domain, types, value } = getNativeMetaTxTypeData({
-        nonce: nonce,
+        nonce,
         userAddress: relayerSigner.address,
         contractAddress: campaignsNativeGaslessClaim.target as string,
         chainId,
@@ -148,23 +138,21 @@ export default function Campaign() {
         functionSignature,
       });
 
-      await serverLog({ message: "MetaTxTypeData done----" });
+      await serverLog("MetaTxTypeData done----");
 
       // Sign the typed data
       const signature = await relayerSigner.signTypedData(domain, types, value);
+      await serverLog("Signature", signature);
       const splitSignature = ethers.Signature.from(signature);
+      await serverLog("splitSignature", splitSignature);
 
-      console.log("splitSignature", splitSignature);
-
-      await serverLog({
-        message: "Campaign Creation Details",
-        data: { functionSignature, splitSignature, args },
+      await serverLog("Campaign Creation Details", {
+        functionSignature,
+        splitSignature,
+        args,
       });
     } catch (error) {
-      await serverLog({
-        message: "Error creating campaign",
-        data: { error: error },
-      });
+      await serverLog("Error creating campaign", { error: error });
       console.error("Error creating campaign:", error);
     }
   };
@@ -174,7 +162,7 @@ export default function Campaign() {
       await signOut({ redirect: false });
       router.push("/");
     } catch (error) {
-      await serverLog({ message: "Error signing out", data: { error: error } });
+      await serverLog("Error signing out", { error: error });
       console.error("Error signing out", error);
     }
   }, [router]);
