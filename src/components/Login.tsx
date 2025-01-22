@@ -5,6 +5,7 @@ import { Button } from "./ui/Button";
 import sdk, { SignIn as SignInCore, type Context } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Login() {
   const [signingIn, setSigningIn] = useState(false);
@@ -134,10 +135,12 @@ export default function Login() {
       {context && (
         <div className="user-info">
           <h2>Welcome, {context?.user.displayName}!</h2>
-          <img
-            src={context?.user.pfpUrl}
+          <Image
+            src={context?.user.pfpUrl ?? ""}
             alt="Profile"
             className="profile-pic"
+            width={100}
+            height={100}
           />
           <p>Username: {context?.user.username}</p>
           <p>Location: {context?.user.location?.description}</p>
