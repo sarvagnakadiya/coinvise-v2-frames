@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
 import CampaignsNativeGaslessClaim from "@/lib/abi/CampaignsNativeGaslessClaim.json";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 
 interface MetaTxTypeData {
   nonce: bigint;
@@ -38,7 +38,7 @@ export default function Campaign() {
   const { address, isConnected } = useAccount();
 
   const router = useRouter();
-  const [chainId, setChainId] = useState<number>();
+  const chainId = useChainId();
 
   const getNativeMetaTxTypeData = ({
     nonce,
@@ -64,7 +64,7 @@ export default function Campaign() {
         ],
       },
       value: {
-        nonce: nonce,
+        nonce: parseInt(String(nonce)),
         from: userAddress,
         functionSignature: functionSignature,
       },
@@ -75,7 +75,8 @@ export default function Campaign() {
     try {
       // -------- getting relayer signer --------
       const RELAYER_PRIVATE_KEY = process.env.NEXT_PUBLIC_RELAYER_PRIVATE_KEY;
-      if (!RELAYER_PRIVATE_KEY) {
+      const CREATOR_PRIVATE_KEY = process.env.NEXT_PUBLIC_CREATOR_PRIVATE_KEY;
+      if (!RELAYER_PRIVATE_KEY && !CREATOR_PRIVATE_KEY) {
         throw new Error("Relayer not found");
       }
 
@@ -84,6 +85,8 @@ export default function Campaign() {
       );
 
       const relayerSigner = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
+      // 0x6479ff62F767d67c255a61d5c2DcBF4f0Cc45d02
+      const creatorSigner = new ethers.Wallet(CREATOR_PRIVATE_KEY, provider);
       await serverLog("Relayer address", { address: relayerSigner.address });
 
       await serverLog("Provider & signer done----");
@@ -97,8 +100,15 @@ export default function Campaign() {
         _maxSponsoredClaims: BigInt(50),
       };
 
+      await serverLog("Args", args);
+
       // Get contract instance (you'll need to add your contract ABI and address)
       const campaignsNativeGaslessClaim = new ethers.Contract(
+        "0x2A942c4216857ec55216F28e82B8de7dc33FFba1",
+        CampaignsNativeGaslessClaim,
+        provider
+      );
+      const campaignsNativeGaslessClaim2 = new ethers.Contract(
         "0x2A942c4216857ec55216F28e82B8de7dc33FFba1",
         CampaignsNativeGaslessClaim,
         relayerSigner
@@ -106,11 +116,14 @@ export default function Campaign() {
 
       await serverLog("CampaignsNativeGaslessClaim contract instance done----");
 
-      const nonce = await campaignsNativeGaslessClaim.getNonce(address);
+      const nonce = await campaignsNativeGaslessClaim.getNonce(
+        creatorSigner.address
+      );
       await serverLog("Nonce", nonce);
       const network = await provider.getNetwork();
       await serverLog("Network", network);
-      const chainId = Number(network.chainId);
+
+      await serverLog("ChainId", chainId);
 
       await serverLog("Nonce & chainId done----");
 
@@ -130,27 +143,55 @@ export default function Campaign() {
 
       const { domain, types, value } = getNativeMetaTxTypeData({
         nonce,
-        userAddress: relayerSigner.address,
+        userAddress: creatorSigner.address,
         contractAddress: campaignsNativeGaslessClaim.target as string,
-        chainId,
+        chainId: 84532,
         domainName: "CampaignsNativeGaslessClaim",
         domainVersion: "1.0",
         functionSignature,
       });
+      await serverLog("Address", relayerSigner.address);
+      await serverLog("creatorAddress", creatorSigner.address);
 
       await serverLog("MetaTxTypeData done----");
 
       // Sign the typed data
-      const signature = await relayerSigner.signTypedData(domain, types, value);
+      const signature = await creatorSigner.signTypedData(domain, types, value);
       await serverLog("Signature", signature);
       const splitSignature = ethers.Signature.from(signature);
       await serverLog("splitSignature", splitSignature);
 
-      await serverLog("Campaign Creation Details", {
+      // Recover and verify the signer's address
+      const recoveredAddress = ethers.verifyTypedData(
+        domain,
+        types,
+        value,
+        signature
+      );
+      await serverLog("Recovered address", recoveredAddress);
+
+      // Verify the recovered address matches the creator's address
+      if (
+        recoveredAddress.toLowerCase() !== creatorSigner.address.toLowerCase()
+      ) {
+        throw new Error("Signature verification failed");
+      }
+      await serverLog("Signature verification passed");
+
+      // Call executeMetaTransaction
+      const tx = await campaignsNativeGaslessClaim2.executeMetaTransaction(
+        relayerSigner.address, // creatorAddress (user's address)
         functionSignature,
-        splitSignature,
-        args,
-      });
+        splitSignature.r,
+        splitSignature.s,
+        splitSignature.v
+      );
+
+      await serverLog("Transaction sent", { hash: tx.hash });
+
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+      await serverLog("Transaction confirmed", { receipt });
     } catch (error) {
       await serverLog("Error creating campaign", { error: error });
       console.error("Error creating campaign:", error);
