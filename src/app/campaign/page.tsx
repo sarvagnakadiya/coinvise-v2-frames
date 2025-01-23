@@ -76,14 +76,17 @@ export default function Campaign() {
       // -------- getting relayer signer --------
       const RELAYER_PRIVATE_KEY = process.env.NEXT_PUBLIC_RELAYER_PRIVATE_KEY;
       const CREATOR_PRIVATE_KEY = process.env.NEXT_PUBLIC_CREATOR_PRIVATE_KEY;
-      if (!RELAYER_PRIVATE_KEY && !CREATOR_PRIVATE_KEY) {
-        throw new Error("Relayer not found");
-      }
 
       const provider = new ethers.JsonRpcProvider(
         process.env.NEXT_PUBLIC_RPC_URL
       );
 
+      if (!RELAYER_PRIVATE_KEY) {
+        throw new Error("Relayer private key is not defined");
+      }
+      if (!CREATOR_PRIVATE_KEY) {
+        throw new Error("creator private key is not defined");
+      }
       const relayerSigner = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
       // 0x6479ff62F767d67c255a61d5c2DcBF4f0Cc45d02
       const creatorSigner = new ethers.Wallet(CREATOR_PRIVATE_KEY, provider);
