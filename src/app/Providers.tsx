@@ -3,15 +3,15 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { base, optimism } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 import farcasterFrame from "@farcaster/frame-wagmi-connector";
 import { SessionProvider } from "next-auth/react";
 
 export const config = createConfig({
-  chains: [base, optimism],
+  chains: [base, baseSepolia],
   transports: {
     [base.id]: http(),
-    [optimism.id]: http(),
+    [baseSepolia.id]: http(),
   },
   connectors: [farcasterFrame()],
 });

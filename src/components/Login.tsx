@@ -46,9 +46,9 @@ export default function Login() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      setTimeout(() => {
-        router.push("/campaign");
-      }, 2000);
+      // setTimeout(() => {
+      router.push("/campaign");
+      // }, 2000);
     }
   }, [status, router]);
 
