@@ -4,15 +4,17 @@ import { NextRequestWithAuth } from "next-auth/middleware";
 
 export default async function middleware(req: NextRequestWithAuth) {
   const token = await getToken({ req });
-  const isTokenPath = req.nextUrl.pathname.startsWith("/token/");
 
-  // Allow access to token pages without auth
-  if (isTokenPath) {
-    return NextResponse.next();
-  }
+  // List of paths that require authentication
+  const protectedPaths = ["/campaign"];
 
-  // Require auth for all other paths
-  if (!token) {
+  // Check if current path needs authentication
+  const isProtectedPath = protectedPaths.some((path) =>
+    req.nextUrl.pathname.startsWith(path)
+  );
+
+  // Only check auth for protected paths
+  if (isProtectedPath && !token) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -21,14 +23,7 @@ export default async function middleware(req: NextRequestWithAuth) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - token paths
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files
-     */
-    "/((?!token/|_next/static|_next/image|favicon.ico|public).*)",
+    "/campaign/:path*",
+    // Add other protected paths here
   ],
 };
