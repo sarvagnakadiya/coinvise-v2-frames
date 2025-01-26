@@ -15,23 +15,17 @@ export default function Login() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-
   const [context, setContext] = useState<Context.FrameContext>();
 
   useEffect(() => {
     const load = async () => {
       const context = await sdk.context;
       setContext(context);
-
       console.log("Calling ready");
       sdk.actions.ready({});
-
       const store = createStore();
-
-      // Subscribe to the MIPD Store.
       store.subscribe((providerDetails) => {
         console.log("PROVIDER DETAILS", providerDetails);
-        // => [EIP6963ProviderDetail, EIP6963ProviderDetail, ...]
       });
     };
     if (sdk && !isSDKLoaded) {
@@ -48,6 +42,7 @@ export default function Login() {
     if (status === "authenticated") {
       setTimeout(() => {
         router.push("/campaign");
+        // router.push("/token/0x04da37c7ae43171f90414b1f051aa956aed6274a");
       }, 2000);
     }
   }, [status, router]);
@@ -76,7 +71,6 @@ export default function Login() {
         setSignInFailure("Rejected by user");
         return;
       }
-
       setSignInFailure("Unknown error");
     } finally {
       setSigningIn(false);
@@ -106,9 +100,11 @@ export default function Login() {
         </Button>
       )}
       {status === "authenticated" && (
-        <Button onClick={handleSignOut} disabled={signingOut}>
-          Sign out
-        </Button>
+        <div className="flex flex-col gap-4">
+          <Button onClick={handleSignOut} disabled={signingOut}>
+            Sign out
+          </Button>
+        </div>
       )}
       {session && (
         <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
@@ -133,7 +129,7 @@ export default function Login() {
         </div>
       )}
       {context && (
-        <div className="user-info">
+        <div className="user-info space-y-4">
           <h2>Welcome, {context?.user.displayName}!</h2>
           <Image
             src={context?.user.pfpUrl ?? ""}
@@ -142,8 +138,6 @@ export default function Login() {
             width={100}
             height={100}
           />
-          <p>Username: {context?.user.username}</p>
-          <p>Location: {context?.user.location?.description}</p>
         </div>
       )}
     </>
