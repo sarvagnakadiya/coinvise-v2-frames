@@ -72,7 +72,7 @@ export default function TokenPage() {
           `https://api-staging.coinvise.co/token/8453/${tokenAddress}`,
           {
             headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_COINVISE_API_KEY!,
+              "x-api-key": process.env.COINVISE_API_KEY!,
               "X-Authenticated-User":
                 "0x97861976283e6901b407D1e217B72c4007D9F64D",
               "Content-Type": "application/json",
