@@ -12,25 +12,7 @@ import {
   useSendTransaction,
   useSwitchChain,
 } from "wagmi";
-import {
-  base,
-  baseSepolia,
-  mainnet,
-  optimism,
-  optimismSepolia,
-  polygon,
-  sepolia,
-} from "viem/chains";
-
-interface MetaTxTypeData {
-  nonce: bigint;
-  userAddress: string;
-  contractAddress: string;
-  chainId: number;
-  domainName: string;
-  domainVersion: string;
-  functionSignature: string;
-}
+import { base, baseSepolia } from "viem/chains";
 
 // Add this utility function at the top level
 const serverLog = async (message: string, data?: any) => {
@@ -72,9 +54,7 @@ export default function Campaign() {
   const handleSwitchChainIfNeeded = useCallback(async () => {
     await serverLog("current chainId", { chainId });
     if (chainId !== baseSepolia.id) {
-      await serverLog("Switching chain inside if", { chainId });
       try {
-        await serverLog("Switching chain inside try", { chainId });
         switchChain({ chainId: baseSepolia.id });
       } catch (error) {
         console.error("Error switching chain:", error);
@@ -87,179 +67,90 @@ export default function Campaign() {
   const handleSwitchChainId = useCallback(async () => {
     await serverLog("currentchainId", chainId);
     try {
-      switchChain({ chainId: baseSepolia.id });
+      switchChain({ chainId: base.id });
       await serverLog("chain switched");
     } catch (error) {
       await serverLog("Error switching to baseTestnet:", error);
     }
   }, [switchChain]);
 
+  const handleSend = useCallback(() => {
+    sendTransaction({
+      to: "0x542FfB7d78D78F957895891B6798B3d60e979b64",
+      value: BigInt(1),
+    });
+  }, [sendTransaction]);
+
   const handleClaimCampaign = useCallback(async () => {
-    await serverLog("Claim Campaign");
-  }, []);
+    const campaignManager = "0xEA380ddC224497dfFe5871737E12136d3968af15";
+    const campaignId = 0;
+    const referrer = "0x0000000000000000000000000000000000000000";
+    await serverLog("Claim Campaign Data", {
+      campaignManager,
+      campaignId,
+      referrer,
+    });
 
-  // typeHash: 0x23d10def3caacba2e4042e0c75d44a42d2558aabcf5ce951d0642a8032e1e653
+    const provider = new ethers.JsonRpcProvider(
+      "https://base-mainnet.g.alchemy.com/v2/9-2O3J1H0d0Z-xDdDwZHHCBM2mwzVMwT"
+    );
+    const campaigns_cobj = new ethers.Contract(
+      "0x542FfB7d78D78F957895891B6798B3d60e979b64",
+      CampaignsNativeGaslessClaim,
+      provider
+    );
 
-  // const getNativeMetaTxTypeData = ({
-  //   nonce,
-  //   userAddress,
-  //   contractAddress,
-  //   chainId,
-  //   domainName,
-  //   domainVersion,
-  //   functionSignature,
-  // }: MetaTxTypeData) => {
-  //   return {
-  //     domain: {
-  //       name: domainName,
-  //       version: domainVersion,
-  //       chainId: chainId,
-  //       verifyingContract: contractAddress,
-  //     },
-  //     types: {
-  //       MetaTransaction: [
-  //         { name: "nonce", type: "uint256" },
-  //         { name: "from", type: "address" },
-  //         { name: "functionSignature", type: "bytes" },
-  //       ],
-  //     },
-  //     value: {
-  //       nonce: parseInt(String(nonce)),
-  //       from: userAddress,
-  //       functionSignature: functionSignature,
-  //     },
-  //   };
-  // };
+    if (campaigns_cobj && provider) {
+      await serverLog("provider & campaigns done");
+    }
 
-  // const handleCreateCampaign = async () => {
-  //   try {
-  //     // -------- getting relayer signer --------
-  //     const RELAYER_PRIVATE_KEY = process.env.NEXT_PUBLIC_RELAYER_PRIVATE_KEY;
-  //     const CREATOR_PRIVATE_KEY = process.env.NEXT_PUBLIC_CREATOR_PRIVATE_KEY;
+    const v = 27;
+    const r =
+      "0x29e3ca3a9d56c30a40d7b0ed455da27123b61e194605560a41b30dbc45973c8e";
+    const s =
+      "0x41c7ef79a97eb68a6dde6e3b2834ed6eb4c5321547b23781714c8992007c5a3e";
 
-  //     const provider = new ethers.JsonRpcProvider(
-  //       process.env.NEXT_PUBLIC_RPC_URL
-  //     );
+    await serverLog("Claim Campaign Data", {
+      campaignManager,
+      campaignId,
+      r,
+      s,
+      v,
+      referrer,
+    });
 
-  //     if (!RELAYER_PRIVATE_KEY) {
-  //       throw new Error("Relayer private key is not defined");
-  //     }
-  //     if (!CREATOR_PRIVATE_KEY) {
-  //       throw new Error("creator private key is not defined");
-  //     }
-  //     const relayerSigner = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
-  //     // 0x6479ff62F767d67c255a61d5c2DcBF4f0Cc45d02
-  //     const creatorSigner = new ethers.Wallet(CREATOR_PRIVATE_KEY, provider);
-  //     await serverLog("Relayer address", { address: relayerSigner.address });
+    const data = campaigns_cobj.interface.encodeFunctionData("claim", [
+      campaignManager,
+      campaignId,
+      r,
+      s,
+      v,
+      referrer,
+    ]) as `0x${string}`;
 
-  //     await serverLog("Provider & signer done----");
+    await serverLog("Claim Campaign Data", {
+      campaignManager,
+      campaignId,
+      r,
+      s,
+      v,
+      referrer,
+    });
 
-  //     // Campaign parameters
-  //     const args = {
-  //       _tokenAddress: "0x2246A41B6efB730A3845012EF8eBE6bc1D367A79",
-  //       _maxClaims: BigInt(100),
-  //       _amountPerClaim: BigInt(10000000),
-  //       _isGasless: BigInt(1),
-  //       _maxSponsoredClaims: BigInt(50),
-  //     };
-
-  //     await serverLog("Args", args);
-
-  //     // Get contract instance (you'll need to add your contract ABI and address)
-  //     const campaignsNativeGaslessClaim = new ethers.Contract(
-  //       "0x2A942c4216857ec55216F28e82B8de7dc33FFba1",
-  //       CampaignsNativeGaslessClaim,
-  //       provider
-  //     );
-  //     const campaignsNativeGaslessClaim2 = new ethers.Contract(
-  //       "0x2A942c4216857ec55216F28e82B8de7dc33FFba1",
-  //       CampaignsNativeGaslessClaim,
-  //       relayerSigner
-  //     );
-
-  //     await serverLog("CampaignsNativeGaslessClaim contract instance done----");
-
-  //     const nonce = await campaignsNativeGaslessClaim.getNonce(
-  //       creatorSigner.address
-  //     );
-  //     await serverLog("Nonce", nonce);
-  //     const network = await provider.getNetwork();
-  //     await serverLog("Network", network);
-
-  //     await serverLog("ChainId", chainId);
-
-  //     await serverLog("Nonce & chainId done----");
-
-  //     const functionSignature =
-  //       campaignsNativeGaslessClaim.interface.encodeFunctionData(
-  //         "createCampaign",
-  //         [
-  //           args._tokenAddress,
-  //           args._maxClaims,
-  //           args._amountPerClaim,
-  //           args._isGasless,
-  //           args._maxSponsoredClaims,
-  //         ]
-  //       );
-
-  //     await serverLog("FunctionSignature", functionSignature);
-
-  //     const { domain, types, value } = getNativeMetaTxTypeData({
-  //       nonce,
-  //       userAddress: creatorSigner.address,
-  //       contractAddress: campaignsNativeGaslessClaim.target as string,
-  //       chainId: 84532,
-  //       domainName: "CampaignsNativeGaslessClaim",
-  //       domainVersion: "1.0",
-  //       functionSignature,
-  //     });
-  //     await serverLog("Address", relayerSigner.address);
-  //     await serverLog("creatorAddress", creatorSigner.address);
-
-  //     await serverLog("MetaTxTypeData done----");
-
-  //     // Sign the typed data
-  //     const signature = await creatorSigner.signTypedData(domain, types, value);
-  //     await serverLog("Signature", signature);
-  //     const splitSignature = ethers.Signature.from(signature);
-  //     await serverLog("splitSignature", splitSignature);
-
-  //     // Recover and verify the signer's address
-  //     const recoveredAddress = ethers.verifyTypedData(
-  //       domain,
-  //       types,
-  //       value,
-  //       signature
-  //     );
-  //     await serverLog("Recovered address", recoveredAddress);
-
-  //     // Verify the recovered address matches the creator's address
-  //     if (
-  //       recoveredAddress.toLowerCase() !== creatorSigner.address.toLowerCase()
-  //     ) {
-  //       throw new Error("Signature verification failed");
-  //     }
-  //     await serverLog("Signature verification passed");
-
-  //     // Call executeMetaTransaction
-  //     const tx = await campaignsNativeGaslessClaim2.executeMetaTransaction(
-  //       relayerSigner.address, // creatorAddress (user's address)
-  //       functionSignature,
-  //       splitSignature.r,
-  //       splitSignature.s,
-  //       splitSignature.v
-  //     );
-
-  //     await serverLog("Transaction sent", { hash: tx.hash });
-
-  //     // Wait for transaction confirmation
-  //     const receipt = await tx.wait();
-  //     await serverLog("Transaction confirmed", { receipt });
-  //   } catch (error) {
-  //     await serverLog("Error creating campaign", { error: error });
-  //     console.error("Error creating campaign:", error);
-  //   }
-  // };
+    sendTransaction(
+      {
+        to: campaigns_cobj.target as `0x${string}`,
+        data: data,
+        value: BigInt(150000000000000),
+      },
+      {
+        onSuccess: (hash) => {
+          console.log("Claim transaction hash:", hash);
+          serverLog("Claim transaction hash", { hash });
+        },
+      }
+    );
+  }, [sendTransaction, address]);
 
   const handleApproveToken = useCallback(async () => {
     const switched = await handleSwitchChainIfNeeded();
@@ -276,7 +167,7 @@ export default function Campaign() {
     const data = iface.encodeFunctionData("approve", [
       campaignContractAddress, // spender
       ethers.MaxUint256, // amount (approve maximum)
-    ]);
+    ]) as unknown as `0x${string}`;
 
     await serverLog("Approve Token Data", {
       tokenContractAddress,
@@ -314,7 +205,7 @@ export default function Campaign() {
       BigInt(1000000000000000000), // _amountPerClaim
       0, // _isGasless
       BigInt(0), // _maxSponsoredClaims
-    ]);
+    ]) as unknown as `0x${string}`;
 
     await serverLog("Create Campaign Data", { contractAddress, data });
 
@@ -356,6 +247,7 @@ export default function Campaign() {
       <Button onClick={handleCreateCampaign}>Create Campaign</Button>
       <Button onClick={handleClaimCampaign}>Claim Campaign</Button>
       <Button onClick={handleSignOut}>Sign Out</Button>
+      <Button onClick={handleSend}>Send ETH</Button>
     </div>
   );
 }
