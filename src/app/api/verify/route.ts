@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { fid, tokenName, validFrom, validTo } = body;
-
+    console.log("Received request:", body);
     // Validate required parameters
     if (!fid || !tokenName || !validFrom || !validTo) {
       return NextResponse.json(
@@ -40,11 +40,13 @@ export async function POST(request: Request) {
       const text = cast.text.toLowerCase();
 
       if (isWithinTimeRange && text.includes(lowerTokenName)) {
+        console.log("Valid cast found", text);
         return NextResponse.json({ eligible: true });
       }
     }
 
     // If no valid cast found
+    console.log("No valid cast found");
     return NextResponse.json({ eligible: false });
   } catch (error) {
     console.error("Error checking Farcaster token yap:", error);
