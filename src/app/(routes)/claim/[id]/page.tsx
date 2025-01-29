@@ -18,25 +18,43 @@ export async function generateMetadata({
     ? `${process.env.NEXT_PUBLIC_URL}/claim/${id}`
     : "";
 
+  // Fetch airdrop details
+  const response = await fetch(
+    `https://api-staging.coinvise.co/airdrop/${id}`,
+    {
+      headers: {
+        "x-api-key": process.env.NEYNAR_API_KEY || "",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const airdropDetails = await response.json();
+  const coverImage =
+    airdropDetails?.metadata?.coverImage ||
+    "https://cryptocurrencyjobs.co/startups/assets/logos/coinvise.jpg";
+
   const frame = {
     version: "next",
-    imageUrl: `${appUrl}/opengraph-image`,
+    imageUrl: coverImage,
     button: {
       title: "Launch Frame",
       action: {
         type: "launch_frame",
         name: "Coinvise Frames",
         url: appUrl,
-        splashImageUrl: `https://cryptocurrencyjobs.co/startups/assets/logos/coinvise.jpg`,
+        splashImageUrl: coverImage,
         splashBackgroundColor: "#f7f7f7",
       },
     },
   };
+
   return {
     title: "Coinvise Frames",
     openGraph: {
       title: "Coinvise Frame",
       description: "Coinvise Frame",
+      images: [coverImage],
     },
     other: {
       "fc:frame": JSON.stringify(frame),
