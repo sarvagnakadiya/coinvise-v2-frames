@@ -4,10 +4,24 @@ import axios from "axios";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fid, tokenName, validFrom, validTo } = body;
+    const {
+      fid,
+      tokenName,
+      validFrom,
+      validTo,
+      airdropId,
+      authenticatedUserAddress,
+    } = body;
     console.log("Received request:", body);
     // Validate required parameters
-    if (!fid || !tokenName || !validFrom || !validTo) {
+    if (
+      !fid ||
+      !tokenName ||
+      !validFrom ||
+      !validTo ||
+      !airdropId ||
+      !authenticatedUserAddress
+    ) {
       return NextResponse.json(
         { error: "Missing required parameters" },
         { status: 400 }
@@ -41,7 +55,30 @@ export async function POST(request: Request) {
 
       if (isWithinTimeRange && text.includes(lowerTokenName)) {
         console.log("Valid cast found", text);
-        return NextResponse.json({ eligible: true });
+
+        // Call the Coinvise API to verify the airdrop
+        const coinviseResponse = await axios.get(
+          `https://api-staging.coinvise.co/airdrop/verify?id=${airdropId}`,
+          {
+            headers: {
+              "x-api-key": process.env.FRONTEND_API_KEY || "",
+              "X-Authenticated-User": authenticatedUserAddress || "",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log(coinviseResponse.data);
+
+        if (coinviseResponse.data && coinviseResponse.data.signature) {
+          const { v, r, s } = coinviseResponse.data.signature;
+          return NextResponse.json({ eligible: true, v, r, s });
+        } else {
+          return NextResponse.json({
+            eligible: false,
+            error: "Verification failed",
+          });
+        }
       }
     }
 

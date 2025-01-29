@@ -130,6 +130,7 @@ export default function Login() {
       {context && (
         <div className="user-info space-y-4">
           <h2>Welcome, {context?.user.displayName}!</h2>
+          <h2>Welcome, {context?.user.fid}!</h2>
           <Image
             src={context?.user.pfpUrl ?? ""}
             alt="Profile"
