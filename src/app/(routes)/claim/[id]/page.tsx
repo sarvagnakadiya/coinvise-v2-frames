@@ -89,8 +89,7 @@ export default function ClaimPage() {
           {
             headers: {
               "x-api-key": process.env.NEYNAR_API_KEY || "",
-              "X-Authenticated-User":
-                "0xE3ebcf8ef7AD377ece3AeABD25Ba09b2b8F2641B" || "",
+              "X-Authenticated-User": address || "",
               "Content-Type": "application/json",
             },
           }
