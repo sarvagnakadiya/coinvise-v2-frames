@@ -61,7 +61,7 @@ export async function POST(request: Request) {
           `https://api-staging.coinvise.co/airdrop/verify?id=${airdropId}`,
           {
             headers: {
-              "x-api-key": process.env.FRONTEND_API_KEY || "",
+              "x-api-key": process.env.COINVISE_API_KEY || "",
               "X-Authenticated-User": authenticatedUserAddress || "",
               "Content-Type": "application/json",
             },
