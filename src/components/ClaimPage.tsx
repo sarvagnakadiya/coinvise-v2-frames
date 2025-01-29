@@ -10,42 +10,11 @@ import { ethers } from "ethers";
 import campaign_abi from "@/lib/abi/CampaignsNativeGaslessClaim.json";
 import sdk, { type Context } from "@farcaster/frame-sdk";
 import { CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
+import { formatDate } from "@/utils/date";
+import { AirdropDetails } from "@/types/airdrop";
 
-interface Condition {
-  type: string;
-  metadata: {
-    farcasterUsername: string;
-    tokenName: string;
-    validFrom: string;
-    validTo: string;
-  };
-}
-
-interface Token {
-  imageUrl: any;
-  address: string;
-  name: string | null;
-  symbol: string | null;
-}
-
-interface AirdropDetails {
-  metadata: any;
-  id: string;
-  title: string;
-  description: string;
-  token: Token;
-  active: boolean;
-  conditions: Condition[];
-  txHash: string;
-  imageUrl: string;
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
+// Constants
+const CONTRACT_ADDRESS = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
 
 export default function ClaimPage() {
   const [context, setContext] = useState<Context.FrameContext>();
@@ -55,7 +24,7 @@ export default function ClaimPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const { address, isConnected } = useAccount();
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(
@@ -63,7 +32,6 @@ export default function ClaimPage() {
   );
   const { sendTransaction } = useSendTransaction();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const contractAddress = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
   const [showConnectModal, setShowConnectModal] = useState(false);
 
   useEffect(() => {
@@ -110,11 +78,7 @@ export default function ClaimPage() {
   }, [id, address]);
 
   useEffect(() => {
-    if (!address || !isConnected) {
-      setShowConnectModal(true);
-    } else {
-      setShowConnectModal(false);
-    }
+    setShowConnectModal(!address || !isConnected);
   }, [address, isConnected]);
 
   const handleClaimCampaign = useCallback(
@@ -141,7 +105,7 @@ export default function ClaimPage() {
       const referrer = "0x0000000000000000000000000000000000000000";
 
       const campaigns_cobj = new ethers.Contract(
-        contractAddress,
+        CONTRACT_ADDRESS,
         campaign_abi,
         provider
       );
