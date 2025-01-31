@@ -12,6 +12,7 @@ import sdk, { type Context } from "@farcaster/frame-sdk";
 import { CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { AirdropDetails } from "@/types/airdrop";
+import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
 
 const serverLog = async (message: string, data?: any) => {
   try {
@@ -181,21 +182,6 @@ export default function ClaimPage() {
       setVerifyLoading(false);
     }
   };
-  const handleConnectWallet = async () => {
-    if (typeof (window as any).ethereum !== "undefined") {
-      try {
-        await (window as any).ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = provider.getSigner();
-      } catch (error) {
-        console.error("User denied account access or error occurred:", error);
-      }
-    } else {
-      console.error("No Ethereum provider found. Install MetaMask.");
-    }
-  };
 
   if (loading) {
     return (
@@ -218,25 +204,11 @@ export default function ClaimPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Connect Wallet Modal */}
-      {showConnectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
-          <div className="bg-white p-8 rounded-lg shadow-lg transform transition-transform duration-300 ease-in-out scale-95 hover:scale-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Connect Your Wallet
-            </h2>
-            <p className="text-gray-700 mb-6">
-              Please connect your wallet to proceed with the claim.
-            </p>
-            <Button
-              onClick={handleConnectWallet}
-              className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200"
-            >
-              Connect Wallet
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Replace the existing modal with the new component */}
+      <ConnectWalletModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+      />
 
       <div className="relative">
         {/* Cover Image */}

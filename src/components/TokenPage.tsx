@@ -1,72 +1,25 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/Button";
+import { ExpandableTab } from "@/components/ui/ExpandableTab";
 import Image from "next/image";
 import { useAccount } from "wagmi";
 import LPLockerABI from "@/lib/abi/LPLocker.json";
 import { ethers } from "ethers";
 import sdk from "@farcaster/frame-sdk";
-
-interface TokenData {
-  name: string;
-  symbol: string;
-  description: string;
-  imageUrl: string;
-  tokenSupply: string;
-  decimals: number;
-  lpLockerAddress: string;
-}
-
-interface TabProps {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-const serverLog = async (message: string, data?: any) => {
-  try {
-    await fetch("/api/log", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message, data }),
-    });
-  } catch (error) {
-    // Fallback to client console in case of fetch error
-    console.error("Failed to send log to server:", error);
-  }
-};
-
-const ExpandableTab = ({ title, isOpen, onToggle, children }: TabProps) => (
-  <div className="w-full max-w-[600px] mb-4 border rounded-lg overflow-hidden">
-    <button
-      onClick={onToggle}
-      className="w-full p-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
-    >
-      <span className="font-medium">{title}</span>
-      {isOpen ? (
-        <ChevronUpIcon className="h-5 w-5" />
-      ) : (
-        <ChevronDownIcon className="h-5 w-5" />
-      )}
-    </button>
-    {isOpen && <div className="p-4">{children}</div>}
-  </div>
-);
+import { TokenData } from "@/types/token";
+import { serverLog } from "@/utils/logging";
+import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
 
 export default function TokenPage() {
   const { tokenAddress } = useParams();
-  // const tokenAddress = params.address as string;
   const [openTab, setOpenTab] = useState<string | null>(null);
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
 
   useEffect(() => {
     const initializeFrameSDK = async () => {
@@ -112,6 +65,10 @@ export default function TokenPage() {
     fetchTokenData();
   }, [tokenAddress, address]);
 
+  useEffect(() => {
+    setShowConnectModal(!address || !isConnected);
+  }, [address, isConnected]);
+
   const handleClaimFees = useCallback(async () => {
     try {
       if (!tokenData) return;
@@ -150,6 +107,11 @@ export default function TokenPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <ConnectWalletModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+      />
+
       {/* Token Info Card */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-[600px] mx-auto">
         <div className="flex items-center gap-4 mb-4">
@@ -208,7 +170,7 @@ export default function TokenPage() {
                   />
                 </svg>
               </a>
-              <a
+              {/* <a
                 href={`https://staging.coinvise.co/token/${tokenAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -228,7 +190,7 @@ export default function TokenPage() {
                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                   />
                 </svg>
-              </a>
+              </a> */}
             </div>
           </div>
         </div>
@@ -249,6 +211,19 @@ export default function TokenPage() {
           />
         </ExpandableTab>
 
+        <ExpandableTab
+          title="Price chart"
+          isOpen={openTab === "priceChart"}
+          onToggle={() => toggleTab("priceChart")}
+        >
+          <iframe
+            className="h-full min-h-[500px] w-full border-0"
+            id="geckoterminal-embed"
+            title="GeckoTerminal Embed"
+            src={`https://www.geckoterminal.com/base/pools/${tokenAddress}?embed=1&info=0&swaps=0&grayscale=0&light_chart=0`}
+            allow="clipboard-write"
+          />
+        </ExpandableTab>
         <ExpandableTab
           title="Claim Fees"
           isOpen={openTab === "claim"}
