@@ -2,7 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import TokenPage from "@/components/TokenPage";
 
-type Params = Promise<{ address: string }>;
+type Params = Promise<{ tokenAddress: string }>;
 
 // Method 1: Using searchParams directly in a separate function
 
@@ -13,24 +13,26 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const { address } = await params;
+  const { tokenAddress } = await params;
   const appUrl = process.env.NEXT_PUBLIC_URL
-    ? `${process.env.NEXT_PUBLIC_URL}/claim/${address}`
+    ? `${process.env.NEXT_PUBLIC_URL}/token/${tokenAddress}`
     : "";
 
   // Fetch airdrop details
-  // const response = await fetch(
-  //   `https://api-staging.coinvise.co/airdrop/${id}`,
-  //   {
-  //     headers: {
-  //       "x-api-key": process.env.NEYNAR_API_KEY || "",
-  //       "Content-Type": "application/json",
-  //     },
-  //   }
-  // );
+  const response = await fetch(
+    `https://api-staging.coinvise.co/token/8453/${tokenAddress}`,
+    {
+      headers: {
+        "x-api-key": process.env.COINVISE_API_KEY || "",
+        "X-Authenticated-User": tokenAddress || "",
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
-  // const airdropDetails = await response.json();
+  const tokenDetails = await response.json();
   const coverImage =
+    tokenDetails?.imageUrl ||
     "https://cryptocurrencyjobs.co/startups/assets/logos/coinvise.jpg";
 
   const frame = {

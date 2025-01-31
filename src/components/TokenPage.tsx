@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/Button";
@@ -58,8 +58,8 @@ const ExpandableTab = ({ title, isOpen, onToggle, children }: TabProps) => (
 );
 
 export default function TokenPage() {
-  const params = useParams();
-  const tokenAddress = params.address as string;
+  const { tokenAddress } = useParams();
+  // const tokenAddress = params.address as string;
   const [openTab, setOpenTab] = useState<string | null>(null);
   const { address } = useAccount();
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
@@ -67,19 +67,21 @@ export default function TokenPage() {
 
   useEffect(() => {
     const fetchTokenData = async () => {
+      await serverLog("Token Page", { tokenAddress });
+
       try {
         const response = await fetch(
           `https://api-staging.coinvise.co/token/8453/${tokenAddress}`,
           {
             headers: {
-              "x-api-key": process.env.COINVISE_API_KEY!,
-              "X-Authenticated-User":
-                "0x97861976283e6901b407D1e217B72c4007D9F64D",
+              "x-api-key": process.env.COINVISE_API_KEY || "",
+              "X-Authenticated-User": address || "",
               "Content-Type": "application/json",
             },
           }
         );
         const data = await response.json();
+        await serverLog("Token Data", { data });
         setTokenData(data);
       } catch (error) {
         console.error("Error fetching token data:", error);
@@ -89,54 +91,43 @@ export default function TokenPage() {
     };
 
     fetchTokenData();
-  }, [tokenAddress]);
+  }, [tokenAddress, address]);
 
-  if (loading || !tokenData) {
-    return <div className="container mx-auto p-4">Loading...</div>;
-  }
-
-  const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
-  const signer = new ethers.JsonRpcSigner(provider, address as string);
-
-  const collectFees = async () => {
-    const LockerInstance = new ethers.Contract(
-      tokenData.lpLockerAddress,
-      LPLockerABI,
-      signer
-    );
-    const tokenId = await LockerInstance.tokenId();
-    serverLog("Token ID", { tokenId: tokenId.toString() });
-
+  const handleClaimFees = useCallback(async () => {
     try {
+      if (!tokenData) return;
+
+      const provider = new ethers.JsonRpcProvider(
+        process.env.NEXT_PUBLIC_BASE_RPC_URL || ""
+      );
+      const signer = new ethers.JsonRpcSigner(provider, address as string);
+
+      const LockerInstance = new ethers.Contract(
+        tokenData.lpLockerAddress,
+        LPLockerABI,
+        signer
+      );
+      const tokenId = await LockerInstance.tokenId();
+      await serverLog("Token ID", { tokenId: tokenId.toString() });
+
       if (!address || !tokenId) {
-        // toast.error("Please connect your wallet first");
         return;
       }
 
       const hash = await LockerInstance.collectFees(address, tokenId);
-
       await serverLog("Transaction sent", { hash });
-
-      //   toast.success("Transaction submitted", {
-      //     description: "Your claim transaction has been submitted",
-      //     action: {
-      //       label: "View Transaction",
-      //       onClick: () =>
-      //         window.open(`https://basescan.org/tx/${hash}`, "_blank"),
-      //     },
-      //   });
     } catch (error) {
       console.error("Error collecting fees:", error);
-      //   toast.error("Failed to collect fees", {
-      //     description:
-      //       error instanceof Error ? error.message : "Unknown error occurred",
-      //   });
     }
-  };
+  }, [address, tokenData]);
 
   const toggleTab = (tabName: string) => {
     setOpenTab(openTab === tabName ? null : tabName);
   };
+
+  if (loading || !tokenData) {
+    return <div className="container mx-auto p-4">Loading...</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -245,7 +236,7 @@ export default function TokenPage() {
           onToggle={() => toggleTab("claim")}
         >
           <Button
-            onClick={collectFees}
+            onClick={handleClaimFees}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             disabled={!address}
           >
