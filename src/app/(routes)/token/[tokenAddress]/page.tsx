@@ -63,12 +63,8 @@ export async function generateMetadata({
   };
 }
 
-function page({ params }: any) {
-  return (
-    <div>
-      <TokenPage />
-    </div>
-  );
+function Page() {
+  return <TokenPage />;
 }
 
-export default page;
+export default Page;

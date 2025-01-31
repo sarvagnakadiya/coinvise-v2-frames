@@ -62,12 +62,8 @@ export async function generateMetadata({
   };
 }
 
-function page({ params }: any) {
-  return (
-    <div>
-      <ClaimPage />
-    </div>
-  );
+function Page() {
+  return <ClaimPage />;
 }
 
-export default page;
+export default Page;

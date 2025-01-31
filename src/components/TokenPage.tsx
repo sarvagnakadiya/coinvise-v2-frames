@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useAccount } from "wagmi";
 import LPLockerABI from "@/lib/abi/LPLocker.json";
 import { ethers } from "ethers";
+import sdk from "@farcaster/frame-sdk";
 
 interface TokenData {
   name: string;
@@ -64,6 +65,24 @@ export default function TokenPage() {
   const { address } = useAccount();
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+  useEffect(() => {
+    const initializeFrameSDK = async () => {
+      if (!isSDKLoaded && sdk) {
+        const context = await sdk.context;
+        sdk.actions.ready({});
+        setIsSDKLoaded(true);
+      }
+    };
+
+    initializeFrameSDK();
+
+    return () => {
+      sdk.removeAllListeners();
+    };
+  }, [isSDKLoaded]);
 
   useEffect(() => {
     const fetchTokenData = async () => {
