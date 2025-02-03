@@ -1,4 +1,5 @@
 export interface TokenData {
+  user_addr: string;
   name: string;
   symbol: string;
   description: string;
