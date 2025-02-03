@@ -191,140 +191,145 @@ export default function ClaimPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-24">
-      {/* Replace the existing modal with the new component */}
-      <ConnectWalletModal
-        isOpen={showConnectModal}
-        onClose={() => setShowConnectModal(false)}
-      />
+      {/* Add a container div to constrain width */}
+      <div className="max-w-lg mx-auto relative">
+        {/* Replace the existing modal with the new component */}
+        <ConnectWalletModal
+          isOpen={showConnectModal}
+          onClose={() => setShowConnectModal(false)}
+        />
 
-      <div className="relative">
-        {/* Cover Image */}
-        <div className="relative w-full h-80">
-          <Image
-            src={airdropDetails.metadata.coverImage}
-            alt="Cover"
-            layout="fill"
-            objectFit="cover"
-            className="brightness-75"
-          />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-black to-transparent" />
-        </div>
+        <div className="relative">
+          {/* Cover Image */}
+          <div className="relative w-full h-80">
+            <Image
+              src={airdropDetails.metadata.coverImage}
+              alt="Cover"
+              layout="fill"
+              objectFit="cover"
+              className="brightness-75"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-black to-transparent" />
+          </div>
 
-        {/* Token Info Card */}
-        <div className="relative px-4 -mt-16">
-          <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-4">
-              {airdropDetails.token.imageUrl ? (
-                <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-800">
-                  <Image
-                    src={airdropDetails.token.imageUrl}
-                    alt={airdropDetails.token.name || "Token"}
-                    width={64}
-                    height={64}
-                    className="object-cover"
-                  />
+          {/* Token Info Card */}
+          <div className="relative px-4 -mt-16">
+            <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-4">
+                {airdropDetails.token.imageUrl ? (
+                  <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-800">
+                    <Image
+                      src={airdropDetails.token.imageUrl}
+                      alt={airdropDetails.token.name || "Token"}
+                      width={64}
+                      height={64}
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-300">
+                      {(airdropDetails.token.symbol || "T")[0]}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                    {airdropDetails.title}
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {airdropDetails.description}
+                  </p>
                 </div>
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
-                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-300">
-                    {(airdropDetails.token.symbol || "T")[0]}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-                  {airdropDetails.title}
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {airdropDetails.description}
-                </p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Eligibility Steps */}
-        <div className="px-4 mt-4 space-y-4">
-          <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              How to Claim
-            </h2>
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 dark:text-purple-300 font-semibold">
-                    1
-                  </span>
+          {/* Eligibility Steps */}
+          <div className="px-4 mt-4 space-y-4">
+            <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-800">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How to Claim
+              </h2>
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                      1
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-gray-700 dark:text-gray-200">
+                      Post / Market / Yap about{" "}
+                      <span className="font-medium">
+                        {airdropDetails.conditions[0]?.metadata.tokenName}
+                      </span>
+                    </p>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      <CalendarDays className="h-4 w-4" />
+                      <span>
+                        {formatDate(
+                          airdropDetails.conditions[0]?.metadata.validFrom
+                        )}{" "}
+                        -{" "}
+                        {formatDate(
+                          airdropDetails.conditions[0]?.metadata.validTo
+                        )}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    Post / Market / Yap about{" "}
-                    <span className="font-medium">
-                      {airdropDetails.conditions[0]?.metadata.tokenName}
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                      2
                     </span>
-                  </p>
-                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    <CalendarDays className="h-4 w-4" />
-                    <span>
-                      {formatDate(
-                        airdropDetails.conditions[0]?.metadata.validFrom
-                      )}{" "}
-                      -{" "}
-                      {formatDate(
-                        airdropDetails.conditions[0]?.metadata.validTo
-                      )}
-                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <p className="text-gray-700 dark:text-gray-200">
+                      Verify your post and claim tokens
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 dark:text-purple-300 font-semibold">
-                    2
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <p className="text-gray-700 dark:text-gray-200">
-                    Verify your post and claim tokens
+            {verificationError && (
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {verificationError}
                   </p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-
-          {verificationError && (
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
-              <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {verificationError}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* Fixed Bottom Button - with higher z-index */}
-      <div className="fixed bottom-0 inset-x-0 p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-gray-800 z-40">
-        <Button
-          onClick={handleVerifyClaim}
-          disabled={verifyLoading}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
-        >
-          {verifyLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Verifying...</span>
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-5 w-5" />
-              <span>Verify & Claim</span>
-            </>
-          )}
-        </Button>
+        {/* Update the fixed bottom button to respect max width */}
+        <div className="fixed bottom-0 inset-x-0 p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-gray-800 z-40">
+          <div className="max-w-lg mx-auto">
+            <Button
+              onClick={handleVerifyClaim}
+              disabled={verifyLoading}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
+            >
+              {verifyLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Verifying...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>Verify & Claim</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
