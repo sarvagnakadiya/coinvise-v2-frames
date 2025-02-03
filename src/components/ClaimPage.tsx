@@ -172,7 +172,7 @@ export default function ClaimPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-black">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -180,9 +180,9 @@ export default function ClaimPage() {
 
   if (error || !airdropDetails) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-black p-4">
         <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-        <p className="text-gray-900 font-medium text-lg text-center">
+        <p className="text-gray-900 dark:text-white font-medium text-lg text-center">
           {error || "No airdrop details found"}
         </p>
       </div>
@@ -190,7 +190,7 @@ export default function ClaimPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-black pb-24">
       {/* Replace the existing modal with the new component */}
       <ConnectWalletModal
         isOpen={showConnectModal}
@@ -199,7 +199,7 @@ export default function ClaimPage() {
 
       <div className="relative">
         {/* Cover Image */}
-        <div className="relative w-full h-48">
+        <div className="relative w-full h-80">
           <Image
             src={airdropDetails.metadata.coverImage}
             alt="Cover"
@@ -207,15 +207,15 @@ export default function ClaimPage() {
             objectFit="cover"
             className="brightness-75"
           />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-gray-50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-black to-transparent" />
         </div>
 
         {/* Token Info Card */}
         <div className="relative px-4 -mt-16">
-          <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+          <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-4">
               {airdropDetails.token.imageUrl ? (
-                <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-white">
+                <div className="w-16 h-16 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-800">
                   <Image
                     src={airdropDetails.token.imageUrl}
                     alt={airdropDetails.token.name || "Token"}
@@ -225,17 +225,17 @@ export default function ClaimPage() {
                   />
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center ring-4 ring-white">
-                  <span className="text-2xl font-bold text-purple-600">
+                <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center ring-4 ring-white dark:ring-gray-800">
+                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-300">
                     {(airdropDetails.token.symbol || "T")[0]}
                   </span>
                 </div>
               )}
               <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
                   {airdropDetails.title}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {airdropDetails.description}
                 </p>
               </div>
@@ -245,23 +245,25 @@ export default function ClaimPage() {
 
         {/* Eligibility Steps */}
         <div className="px-4 mt-4 space-y-4">
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-black rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               How to Claim
             </h2>
             <div className="space-y-6">
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-semibold">1</span>
+                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                    1
+                  </span>
                 </div>
                 <div>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-200">
                     Post / Market / Yap about{" "}
                     <span className="font-medium">
                       {airdropDetails.conditions[0]?.metadata.tokenName}
                     </span>
                   </p>
-                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
                     <CalendarDays className="h-4 w-4" />
                     <span>
                       {formatDate(
@@ -277,11 +279,13 @@ export default function ClaimPage() {
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-semibold">2</span>
+                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                    2
+                  </span>
                 </div>
                 <div className="flex items-center">
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-200">
                     Verify your post and claim tokens
                   </p>
                 </div>
@@ -290,10 +294,12 @@ export default function ClaimPage() {
           </div>
 
           {verificationError && (
-            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
               <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-600">{verificationError}</p>
+                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {verificationError}
+                </p>
               </div>
             </div>
           )}
@@ -301,7 +307,7 @@ export default function ClaimPage() {
       </div>
 
       {/* Fixed Bottom Button - with higher z-index */}
-      <div className="fixed bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 z-40">
+      <div className="fixed bottom-0 inset-x-0 p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-gray-800 z-40">
         <Button
           onClick={handleVerifyClaim}
           disabled={verifyLoading}
