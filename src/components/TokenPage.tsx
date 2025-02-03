@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ExpandableTab } from "@/components/ui/ExpandableTab";
 import Image from "next/image";
-import { useAccount } from "wagmi";
+import { useAccount, useSendTransaction } from "wagmi";
 import LPLockerABI from "@/lib/abi/LPLocker.json";
 import { ethers } from "ethers";
 import sdk from "@farcaster/frame-sdk";
@@ -20,6 +20,7 @@ export default function TokenPage() {
   const [loading, setLoading] = useState(true);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const { sendTransaction } = useSendTransaction();
 
   useEffect(() => {
     const initializeFrameSDK = async () => {
@@ -85,6 +86,15 @@ export default function TokenPage() {
       );
       const tokenId = await LockerInstance.tokenId();
       await serverLog("Token ID", { tokenId: tokenId.toString() });
+      const data = LockerInstance.interface.encodeFunctionData("collectFees", [
+        address,
+        tokenId,
+      ]) as `0x${string}`;
+
+      sendTransaction({
+        to: LockerInstance.target as `0x${string}`,
+        data: data,
+      });
 
       if (!address || !tokenId) {
         return;

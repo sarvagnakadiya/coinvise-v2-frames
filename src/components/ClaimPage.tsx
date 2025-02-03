@@ -13,21 +13,8 @@ import { CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { AirdropDetails } from "@/types/airdrop";
 import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
+import { serverLog } from "@/utils/logging";
 
-const serverLog = async (message: string, data?: any) => {
-  try {
-    await fetch("/api/log", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message, data }),
-    });
-  } catch (error) {
-    // Fallback to client console in case of fetch error
-    console.error("Failed to send log to server:", error);
-  }
-};
 // Constants
 const CONTRACT_ADDRESS = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
 
