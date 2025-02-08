@@ -23,23 +23,62 @@ export async function POST(request: Request) {
       validTo,
       airdropId,
       authenticatedUserAddress,
+      checkYap,
     } = body;
     console.log("Received request:", body);
-    // Validate required parameters
-    if (
-      !fid ||
-      !tokenName ||
-      !validFrom ||
-      !validTo ||
-      !airdropId ||
-      !authenticatedUserAddress
-    ) {
+
+    // Check and log each missing parameter
+    const missingParams = [];
+    if (checkYap) {
+      if (!fid) missingParams.push("fid");
+      if (!tokenName) missingParams.push("tokenName");
+      // if (!validFrom) missingParams.push("validFrom");
+      // if (!validTo) missingParams.push("validTo");
+    }
+    if (!airdropId) missingParams.push("airdropId");
+    if (!authenticatedUserAddress)
+      missingParams.push("authenticatedUserAddress");
+
+    if (missingParams.length > 0) {
+      console.log("Missing parameters:", missingParams);
       return NextResponse.json(
-        { error: "Missing required parameters" },
+        { error: `Missing required parameters: ${missingParams.join(", ")}` },
         { status: 400 }
       );
     }
 
+    // If checkYap is false, directly generate and return signature
+    if (!checkYap) {
+      const wallet = new ethers.Wallet(process.env.TRUSTED_SIGNER_PRIVATE_KEY!);
+      const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 8453);
+
+      const domain = {
+        name: DOMAIN_NAME,
+        version: DOMAIN_VERSION,
+        chainId: chainId,
+        verifyingContract: process.env.NEXT_PUBLIC_CAMPAIGN_CONTRACT_ADDRESS,
+      };
+
+      const message = {
+        campaignManager: process.env.NEXT_PUBLIC_CAMPAIGN_MANAGER_ADDRESS,
+        campaignId: airdropId,
+        claimer: authenticatedUserAddress,
+      };
+
+      // Sign the typed data
+      const signature = await wallet.signTypedData(domain, CLAIM_TYPE, message);
+      const sig = ethers.Signature.from(signature);
+
+      return NextResponse.json({
+        eligible: true,
+        v: sig.v,
+        r: sig.r,
+        s: sig.s,
+      });
+    }
+
+    // If checkYap is true, proceed with the existing yap verification logic
+    console.log("fid", fid);
     // Fetch user's casts from Neynar API
     const response = await axios.get(
       `https://api.neynar.com/v2/farcaster/feed/user/casts?fid=${fid}&limit=100&include_replies=true`,
@@ -72,17 +111,17 @@ export async function POST(request: Request) {
         const wallet = new ethers.Wallet(
           process.env.TRUSTED_SIGNER_PRIVATE_KEY!
         );
-        const chainId = Number(process.env.CHAIN_ID || 8453);
+        const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 8453);
 
         const domain = {
           name: DOMAIN_NAME,
           version: DOMAIN_VERSION,
           chainId: chainId,
-          verifyingContract: process.env.CAMPAIGN_CONTRACT_ADDRESS,
+          verifyingContract: process.env.NEXT_PUBLIC_CAMPAIGN_CONTRACT_ADDRESS,
         };
 
         const message = {
-          campaignManager: process.env.CAMPAIGN_MANAGER_ADDRESS,
+          campaignManager: process.env.NEXT_PUBLIC_CAMPAIGN_MANAGER_ADDRESS,
           campaignId: airdropId,
           claimer: authenticatedUserAddress,
         };

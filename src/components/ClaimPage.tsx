@@ -117,7 +117,7 @@ export default function ClaimPage() {
       );
       const data = campaigns_cobj.interface.encodeFunctionData("claim", [
         campaignManager,
-        campaignId,
+        id,
         r,
         s,
         v,
@@ -139,17 +139,18 @@ export default function ClaimPage() {
     setVerificationError(null);
 
     try {
-      const condition = airdropDetails.conditions[0];
       const verifyResponse = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fid: context?.user.fid,
-          tokenName: condition.metadata.tokenName,
-          validFrom: condition.metadata.validFrom,
-          validTo: condition.metadata.validTo,
+          tokenName: airdropDetails.token.name,
+          validFrom: airdropDetails.conditions[0]?.metadata.validFrom,
+          validTo: airdropDetails.conditions[0]?.metadata.validTo,
           airdropId: id,
           authenticatedUserAddress: address,
+          // checkYap: airdropDetails.conditions[0]?.type !== "FARCASTER_FOLLOW",
+          checkYap: false,
         }),
       });
 
@@ -292,7 +293,7 @@ export default function ClaimPage() {
                         <p className="text-gray-700 dark:text-gray-200">
                           Post / Market / Yap about{" "}
                           <span className="font-medium">
-                            {airdropDetails.conditions[0]?.metadata.tokenName}
+                            {airdropDetails.token.name}
                           </span>
                         </p>
                         <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
