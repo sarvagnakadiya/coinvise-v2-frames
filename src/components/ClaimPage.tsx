@@ -16,17 +16,17 @@ import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
 import { serverLog } from "@/utils/logging";
 
 // Constants
-const CONTRACT_ADDRESS = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
+// const CONTRACT_ADDRESS = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
+const CONTRACT_ADDRESS = "0xf482f26F43459186a8E17A08a2FbBDf07C7aBc66";
 
 export default function ClaimPage() {
   const [context, setContext] = useState<Context.FrameContext>();
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const [airdropDetails, setAirdropDetails] = useState<AirdropDetails | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const { data: session } = useSession();
   const { address, isConnected } = useAccount();
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(
@@ -58,7 +58,7 @@ export default function ClaimPage() {
     const fetchAirdropDetails = async () => {
       try {
         const response = await fetch(
-          `https://api-staging.coinvise.co/airdrop/${id}`,
+          `https://api-staging.coinvise.co/airdrop/${slug}`,
           {
             headers: {
               "x-api-key": process.env.NEYNAR_API_KEY || "",
@@ -67,11 +67,11 @@ export default function ClaimPage() {
             },
           }
         );
-        await serverLog("fetchAirdropDetails", {
-          response,
-        });
         if (!response.ok) throw new Error("Failed to fetch airdrop details");
         const data = await response.json();
+        await serverLog("fetchAirdropDetails", {
+          data,
+        });
         setAirdropDetails(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
@@ -80,7 +80,7 @@ export default function ClaimPage() {
       }
     };
     fetchAirdropDetails();
-  }, [id, address]);
+  }, [id, slug, address]);
 
   useEffect(() => {
     setShowConnectModal(!address || !isConnected);
@@ -107,6 +107,7 @@ export default function ClaimPage() {
 
       const campaignManager = `0x${filteredLog.topics[1].slice(26)}`;
       const campaignId = parseInt(filteredLog.topics[2], 16);
+
       const referrer = "0x0000000000000000000000000000000000000000";
 
       const campaigns_cobj = new ethers.Contract(
@@ -147,7 +148,7 @@ export default function ClaimPage() {
           tokenName: condition.metadata.tokenName,
           validFrom: condition.metadata.validFrom,
           validTo: condition.metadata.validTo,
-          airdropId: airdropDetails.id,
+          airdropId: id,
           authenticatedUserAddress: address,
         }),
       });
@@ -259,24 +260,55 @@ export default function ClaimPage() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-gray-700 dark:text-gray-200">
-                      Post / Market / Yap about{" "}
-                      <span className="font-medium">
-                        {airdropDetails.conditions[0]?.metadata.tokenName}
-                      </span>
-                    </p>
-                    <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      <CalendarDays className="h-4 w-4" />
-                      <span>
-                        {formatDate(
-                          airdropDetails.conditions[0]?.metadata.validFrom
-                        )}{" "}
-                        -{" "}
-                        {formatDate(
-                          airdropDetails.conditions[0]?.metadata.validTo
-                        )}
-                      </span>
-                    </div>
+                    {airdropDetails.conditions[0]?.type ===
+                    "FARCASTER_FOLLOW" ? (
+                      <div className="space-y-4">
+                        <p className="text-gray-700 dark:text-gray-200">
+                          Follow these accounts on Farcaster
+                        </p>
+
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                            onClick={() =>
+                              sdk.actions.viewProfile({ fid: 372043 })
+                            }
+                          >
+                            Follow @coinvise
+                          </Button>
+
+                          <Button
+                            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                            onClick={() =>
+                              sdk.actions.viewProfile({ fid: 881415 })
+                            }
+                          >
+                            Follow @earnkit
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-gray-700 dark:text-gray-200">
+                          Post / Market / Yap about{" "}
+                          <span className="font-medium">
+                            {airdropDetails.conditions[0]?.metadata.tokenName}
+                          </span>
+                        </p>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                          <CalendarDays className="h-4 w-4" />
+                          <span>
+                            {formatDate(
+                              airdropDetails.conditions[0]?.metadata.validFrom
+                            )}{" "}
+                            -{" "}
+                            {formatDate(
+                              airdropDetails.conditions[0]?.metadata.validTo
+                            )}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 

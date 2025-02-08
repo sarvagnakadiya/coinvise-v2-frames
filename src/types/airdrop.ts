@@ -1,10 +1,11 @@
 export interface Condition {
-  type: string;
+  type: "FARCASTER_FOLLOW" | "FARCASTER_TOKEN_YAP";
   metadata: {
     farcasterUsername: string;
     tokenName: string;
     validFrom: string;
     validTo: string;
+    accounts?: string[];
   };
 }
 

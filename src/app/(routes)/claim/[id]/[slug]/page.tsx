@@ -2,7 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import ClaimPage from "@/components/ClaimPage";
 
-type Params = Promise<{ id: string }>;
+type Params = Promise<{ id: string; slug: string }>;
 
 // Method 1: Using searchParams directly in a separate function
 
@@ -13,14 +13,14 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id, slug } = await params;
   const appUrl = process.env.NEXT_PUBLIC_URL
-    ? `${process.env.NEXT_PUBLIC_URL}/claim/${id}`
+    ? `${process.env.NEXT_PUBLIC_URL}/claim/${id}/${slug}`
     : "";
 
   // Fetch airdrop details
   const response = await fetch(
-    `https://api-staging.coinvise.co/airdrop/${id}`,
+    `https://api-staging.coinvise.co/airdrop/${slug}`,
     {
       headers: {
         "x-api-key": process.env.NEYNAR_API_KEY || "",

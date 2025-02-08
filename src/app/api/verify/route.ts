@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { ethers } from "ethers";
+
+// Constants for signature generation
+const DOMAIN_NAME = "Campaigns";
+const DOMAIN_VERSION = "1.0";
+const CLAIM_TYPE = {
+  Claim: [
+    { name: "campaignManager", type: "address" },
+    { name: "campaignId", type: "uint256" },
+    { name: "claimer", type: "address" },
+  ],
+};
 
 export async function POST(request: Request) {
   try {
@@ -56,29 +68,40 @@ export async function POST(request: Request) {
       if (isWithinTimeRange && text.includes(lowerTokenName)) {
         console.log("Valid cast found", text);
 
-        // Call the Coinvise API to verify the airdrop
-        const coinviseResponse = await axios.get(
-          `https://api-staging.coinvise.co/airdrop/verify?id=${airdropId}`,
-          {
-            headers: {
-              "x-api-key": process.env.COINVISE_API_KEY || "",
-              "X-Authenticated-User": authenticatedUserAddress || "",
-              "Content-Type": "application/json",
-            },
-          }
+        // Generate signature for the claim
+        const wallet = new ethers.Wallet(
+          process.env.TRUSTED_SIGNER_PRIVATE_KEY!
         );
+        const chainId = Number(process.env.CHAIN_ID || 8453);
 
-        console.log(coinviseResponse.data);
+        const domain = {
+          name: DOMAIN_NAME,
+          version: DOMAIN_VERSION,
+          chainId: chainId,
+          verifyingContract: process.env.CAMPAIGN_CONTRACT_ADDRESS,
+        };
 
-        if (coinviseResponse.data && coinviseResponse.data.signature) {
-          const { v, r, s } = coinviseResponse.data.signature;
-          return NextResponse.json({ eligible: true, v, r, s });
-        } else {
-          return NextResponse.json({
-            eligible: false,
-            error: "Verification failed",
-          });
-        }
+        const message = {
+          campaignManager: process.env.CAMPAIGN_MANAGER_ADDRESS,
+          campaignId: airdropId,
+          claimer: authenticatedUserAddress,
+        };
+
+        // Sign the typed data
+        const signature = await wallet.signTypedData(
+          domain,
+          CLAIM_TYPE,
+          message
+        );
+        const sig = ethers.Signature.from(signature);
+        console.log("the sig", sig);
+        return NextResponse.json({
+          eligible: true,
+
+          v: sig.v,
+          r: sig.r,
+          s: sig.s,
+        });
       }
     }
 
