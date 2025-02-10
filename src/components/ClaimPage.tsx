@@ -149,8 +149,7 @@ export default function ClaimPage() {
           validTo: airdropDetails.conditions[0]?.metadata.validTo,
           airdropId: id,
           authenticatedUserAddress: address,
-          // checkYap: airdropDetails.conditions[0]?.type !== "FARCASTER_FOLLOW",
-          checkYap: false,
+          checkYap: airdropDetails.conditions[0]?.type !== "FARCASTER_FOLLOW",
         }),
       });
 
