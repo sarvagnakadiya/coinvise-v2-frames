@@ -9,7 +9,12 @@ import Image from "next/image";
 import { ethers } from "ethers";
 import campaign_abi from "@/lib/abi/CampaignsNativeGaslessClaim.json";
 import sdk, { type Context } from "@farcaster/frame-sdk";
-import { CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 import { formatDate } from "@/utils/date";
 import { AirdropDetails } from "@/types/airdrop";
 import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
@@ -171,6 +176,11 @@ export default function ClaimPage() {
     }
   };
 
+  const openWarpcastUrl = useCallback(() => {
+    const text = encodeURIComponent(`${airdropDetails?.token.name}`);
+    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${text}`);
+  }, [airdropDetails?.token.name]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-black">
@@ -271,12 +281,33 @@ export default function ClaimPage() {
                           <Button
                             className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
                             onClick={() =>
+                              sdk.actions.openUrl(
+                                "https://warpcast.com/coinvise"
+                              )
+                            }
+                          >
+                            Follow @coinvise
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                            onClick={() =>
+                              sdk.actions.openUrl(
+                                "https://warpcast.com/earnkit"
+                              )
+                            }
+                          >
+                            Follow @Earnkit
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          {/* <Button
+                            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                            onClick={() =>
                               sdk.actions.viewProfile({ fid: 372043 })
                             }
                           >
                             Follow @coinvise
                           </Button>
-
                           <Button
                             className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
                             onClick={() =>
@@ -284,7 +315,7 @@ export default function ClaimPage() {
                             }
                           >
                             Follow @earnkit
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
                     ) : (
@@ -295,6 +326,15 @@ export default function ClaimPage() {
                             {airdropDetails.token.name}
                           </span>
                         </p>
+                        <div className="mt-4">
+                          <Button
+                            onClick={openWarpcastUrl}
+                            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                          >
+                            Yap
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
                         <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
                           <CalendarDays className="h-4 w-4" />
                           <span>
