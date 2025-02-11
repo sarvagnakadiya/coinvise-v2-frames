@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useAccount, useSendTransaction } from "wagmi";
+// import { useSession } from "next-auth/react";
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSendTransaction,
+} from "wagmi";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
 import { ethers } from "ethers";
@@ -19,6 +24,8 @@ import { formatDate } from "@/utils/date";
 import { AirdropDetails } from "@/types/airdrop";
 import { ConnectWalletModal } from "@/components/ui/ConnectWalletModal";
 import { serverLog } from "@/utils/logging";
+import { config } from "@/app/Providers";
+// import { ConnectWalletModal } from "./ui/ConnectWalletModal";
 
 // Constants
 // const CONTRACT_ADDRESS = "0x542FfB7d78D78F957895891B6798B3d60e979b64";
@@ -33,6 +40,9 @@ export default function ClaimPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { connect } = useConnect();
+
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(
     null
@@ -93,9 +103,9 @@ export default function ClaimPage() {
     fetchAirdropDetails();
   }, [id, slug, address]);
 
-  useEffect(() => {
-    setShowConnectModal(!address || !isConnected);
-  }, [address, isConnected]);
+  // useEffect(() => {
+  //   setShowConnectModal(!isConnected);
+  // }, [isConnected]);
 
   const handleClaimCampaign = useCallback(
     async (v: number, r: string, s: string) => {
@@ -389,7 +399,6 @@ export default function ClaimPage() {
                 </div>
               </div>
             </div>
-
             {verificationError && (
               <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800">
                 <div className="flex gap-3">
@@ -400,6 +409,9 @@ export default function ClaimPage() {
                 </div>
               </div>
             )}
+            {/* Add padding element to ensure content is visible above fixed button */}
+            <div className="h-24" />{" "}
+            {/* This creates space for the fixed button */}
           </div>
         </div>
 
@@ -412,28 +424,37 @@ export default function ClaimPage() {
                 <span>You are eligible to claim!</span>
               </div>
             )}
-            <Button
-              onClick={isEligible ? handleClaim : handleVerifyClaim}
-              disabled={verifyLoading}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
-            >
-              {verifyLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Verifying...</span>
-                </>
-              ) : isEligible ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Claim Tokens</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Verify to Claim</span>
-                </>
-              )}
-            </Button>
+            {isConnected ? (
+              <Button
+                onClick={isEligible ? handleClaim : handleVerifyClaim}
+                disabled={verifyLoading}
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
+              >
+                {verifyLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Verifying...</span>
+                  </>
+                ) : isEligible ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Claim Tokens</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Verify to Claim</span>
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
+                onClick={() => connect({ connector: config.connectors[0] })}
+              >
+                {isConnected ? "Disconnect" : "Connect wallet"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

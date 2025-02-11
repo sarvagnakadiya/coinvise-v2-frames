@@ -301,7 +301,8 @@ export default function TokenPage() {
           {/* <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
             {tokenData.description}
           </p> */}
-          <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 dark:bg-black rounded-lg">
+
+          {/* <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 dark:bg-black rounded-lg">
             <div className="p-2 bg-white dark:bg-gray-950 rounded-lg shadow-sm">
               <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">
                 Total Supply
@@ -319,7 +320,7 @@ export default function TokenPage() {
                 {tokenData.decimals}
               </p>
             </div>
-          </div>
+          </div> */}
           <div className="space-y-2 p-3 bg-gray-50 dark:bg-black rounded-lg">
             <div>
               <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide mb-1">
@@ -420,7 +421,7 @@ export default function TokenPage() {
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-sm"
                 >
                   <span className="text-blue-600 dark:text-blue-400">
-                    Buy on Uniframe
+                    Buy on Uniframe 🦄
                   </span>
                   <svg
                     className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400"
@@ -444,7 +445,7 @@ export default function TokenPage() {
 
       {/* Tabs */}
       <div className="space-y-3">
-        <ExpandableTab
+        {/* <ExpandableTab
           title="Swap Tokens"
           isOpen={openTab === "swap"}
           onToggle={() => toggleTab("swap")}
@@ -457,7 +458,7 @@ export default function TokenPage() {
               className="border-0 rounded-lg"
             />
           </div>
-        </ExpandableTab>
+        </ExpandableTab> */}
         <ExpandableTab
           title="Price Chart"
           isOpen={openTab === "priceChart"}
@@ -474,7 +475,7 @@ export default function TokenPage() {
           </div>
         </ExpandableTab>
 
-        <ExpandableTab
+        {/* <ExpandableTab
           title="Claim Fees"
           isOpen={openTab === "claim"}
           onToggle={() => toggleTab("claim")}
@@ -529,11 +530,10 @@ export default function TokenPage() {
                 </span>
               )}
 
-              {/* Subtle hover effect overlay */}
               <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 rounded-lg transition-opacity duration-300 pointer-events-none" />
             </Button>
           </div>
-        </ExpandableTab>
+        </ExpandableTab> */}
       </div>
     </div>
   );
