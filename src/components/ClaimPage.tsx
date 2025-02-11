@@ -40,6 +40,12 @@ export default function ClaimPage() {
   const { sendTransaction } = useSendTransaction();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [isEligible, setIsEligible] = useState<boolean | null>(null);
+  const [signature, setSignature] = useState<{
+    v: number;
+    r: string;
+    s: string;
+  } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -159,6 +165,8 @@ export default function ClaimPage() {
       });
 
       const verifyData = await verifyResponse.json();
+      setIsEligible(verifyData.eligible);
+
       if (!verifyData.eligible) {
         setVerificationError(
           "You are not eligible for this claim. Please make sure you have posted about this token on Farcaster within the specified time period."
@@ -166,7 +174,12 @@ export default function ClaimPage() {
         return;
       }
 
-      handleClaimCampaign(verifyData.v, verifyData.r, verifyData.s);
+      // Store signature for later use
+      setSignature({
+        v: verifyData.v,
+        r: verifyData.r,
+        s: verifyData.s,
+      });
     } catch (err) {
       setVerificationError(
         err instanceof Error ? err.message : "Verification failed"
@@ -176,10 +189,20 @@ export default function ClaimPage() {
     }
   };
 
+  const handleClaim = useCallback(() => {
+    if (!signature) return;
+    handleClaimCampaign(signature.v, signature.r, signature.s);
+  }, [signature, handleClaimCampaign]);
+
   const openWarpcastUrl = useCallback(() => {
     const text = encodeURIComponent(`${airdropDetails?.token.name}`);
-    sdk.actions.openUrl(`https://warpcast.com/~/compose?text=${text}`);
-  }, [airdropDetails?.token.name]);
+    const embedUrl = encodeURIComponent(
+      `${process.env.NEXT_PUBLIC_URL}/token/${airdropDetails?.token.address}`
+    );
+    sdk.actions.openUrl(
+      `https://warpcast.com/~/compose?text=${text}&embeds[]=${embedUrl}`
+    );
+  }, [airdropDetails?.token.name, airdropDetails?.token.address]);
 
   if (loading) {
     return (
@@ -383,8 +406,14 @@ export default function ClaimPage() {
         {/* Update the fixed bottom button to respect max width */}
         <div className="fixed bottom-0 inset-x-0 p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-gray-800 z-40">
           <div className="max-w-lg mx-auto">
+            {isEligible && (
+              <div className="mb-3 flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-5 w-5" />
+                <span>You are eligible to claim!</span>
+              </div>
+            )}
             <Button
-              onClick={handleVerifyClaim}
+              onClick={isEligible ? handleClaim : handleVerifyClaim}
               disabled={verifyLoading}
               className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white py-6 rounded-xl font-medium text-lg flex items-center justify-center gap-2"
             >
@@ -393,10 +422,15 @@ export default function ClaimPage() {
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Verifying...</span>
                 </>
+              ) : isEligible ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>Claim Tokens</span>
+                </>
               ) : (
                 <>
                   <CheckCircle2 className="h-5 w-5" />
-                  <span>Verify & Claim</span>
+                  <span>Verify to Claim</span>
                 </>
               )}
             </Button>
